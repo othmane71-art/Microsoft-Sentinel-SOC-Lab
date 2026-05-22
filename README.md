@@ -11,7 +11,6 @@ The goal is to detect brute-force RDP and SSH attempts, generate incidents, send
 - [Ubuntu SSH Detection](#ubuntu-ssh-detection)
 - [Automation and Playbooks](#automation-and-playbooks)
 - [Email Alerts in Outlook](#email-alerts-in-outlook)
-- [Screenshots](#screenshots)
 - [Results](#results)
 - [Future Work](#future-work)
 - [Author](#author)
@@ -40,29 +39,57 @@ The lab includes:
 - Analytics rules for detection.
 - Incidents for response.
 - Playbooks for automation and IP blocking.
+<img width="580" height="857" alt="image" src="https://github.com/user-attachments/assets/82cd4243-5ad1-4e12-ab52-ee344308b1ab" />
+
 
 ## Lab Modules
 
 ### Module 1 — Sentinel Environment Setup
 - Create the resource group.
+<img width="705" height="522" alt="image" src="https://github.com/user-attachments/assets/a0c31d44-2a7b-4e55-aa12-336cd4ec3c1f" />
+
 - Create the Log Analytics Workspace.
+<img width="917" height="771" alt="image" src="https://github.com/user-attachments/assets/1a02a2f3-02cd-416d-993b-e42a05335a32" />
+
 - Add Microsoft Sentinel to the workspace.
+<img width="1852" height="968" alt="image" src="https://github.com/user-attachments/assets/408d80ee-6419-43bc-a830-6d9906d20fed" />
+
 
 ### Module 2 — Preparing VM Machines
 - Install the Windows Server VM.
+<img width="360" height="261" alt="image" src="https://github.com/user-attachments/assets/5546e102-6a65-4144-b096-21219e74eeb5" />
+<img width="753" height="197" alt="image" src="https://github.com/user-attachments/assets/ddcf27bc-0e6e-4950-aa27-14bc5ea0e506" />
+
 - Enable Remote Desktop.
+<img width="797" height="493" alt="image" src="https://github.com/user-attachments/assets/e35412ca-8d49-4fae-8bab-8eaf3a4321bb" />
+
 - Install the Ubuntu VM.
+<img width="932" height="221" alt="image" src="https://github.com/user-attachments/assets/88351b2b-a256-4377-94e4-ea1938247735" />
+
 - Prepare a test event on each machine.
+<img width="953" height="72" alt="image" src="https://github.com/user-attachments/assets/3ddd9236-eb4b-41d2-9633-e08377c27423" />
+<img width="828" height="647" alt="image" src="https://github.com/user-attachments/assets/e51f5fcb-e71f-4c0d-8ac0-f584d4375f0d" />
+
 
 ### Module 3 — Onboarding and Log Validation
 - Install MMA / legacy agent on Windows.
+<img width="1047" height="187" alt="image" src="https://github.com/user-attachments/assets/7f56ae0e-49a9-4ca3-9695-5ff3203f00a7" />
+
 - Install MMA / legacy agent on Ubuntu.
+<img width="1535" height="732" alt="image" src="https://github.com/user-attachments/assets/0d56d584-a054-4b09-9781-539044284922" />
+
 - Validate that logs are ingested in Sentinel.
+<img width="1172" height="763" alt="image" src="https://github.com/user-attachments/assets/1b18c790-da74-45f9-9c18-376712de7093" />
+
 
 ### Module 4 — Threat Detection with Analytics Rules
 - Create analytics rules for failed RDP attempts.
+<img width="1646" height="857" alt="image" src="https://github.com/user-attachments/assets/d9158707-00ee-43cc-9013-0f179c900797" />
+
 - Configure Windows auditing.
 - Create analytics rules for failed SSH attempts.
+<img width="1595" height="881" alt="image" src="https://github.com/user-attachments/assets/7c1aee01-4c1e-4ebc-8f72-f5fdac704368" />
+
 - Install and activate the required connector.
 
 ### Module 5 — Automation and Playbook
@@ -74,36 +101,16 @@ The lab includes:
 ## Windows RDP Detection
 
 Windows security events are collected in the `SecurityEvent` table.
+<img width="1518" height="591" alt="image" src="https://github.com/user-attachments/assets/11e4240b-4d4f-4ebc-a109-fda89d11d54d" />
 
-### Example KQL
-```kusto
-SecurityEvent
-| where EventID == 4625
-| extend TargetUserName = tostring(TargetUserName)
-| extend IpAddress = tostring(IpAddress)
-| where isnotempty(TargetUserName)
-| summarize FailedAttempts = count() by TargetUserName, Computer, IpAddress
-| where FailedAttempts > 3
-```
-
-This rule detects repeated failed RDP logons and creates a Sentinel incident.
 
 ## Ubuntu SSH Detection
 
 Ubuntu logs are collected in the `Syslog` table.
+<img width="693" height="617" alt="image" src="https://github.com/user-attachments/assets/151d9b09-f443-43b6-b489-a5700d3e8ee9" />
+<img width="1612" height="837" alt="image" src="https://github.com/user-attachments/assets/42c459c2-61ac-491b-aab5-4fb8a75ae986" />
 
-### Example KQL
-```kusto
-Syslog
-| where Facility in ("auth", "authpriv")
-| where SyslogMessage has "fail" or SyslogMessage has "invalid" or SyslogMessage has "password"
-| extend SourceIP = extract(@"from\s+([0-9]{1,3}(?:\.[0-9]{1,3}){3})", 1, SyslogMessage)
-| extend TargetUser = extract(@"for\s+(\S+)\s+from", 1, SyslogMessage)
-| summarize AttemptCount = count() by Computer, SourceIP, TargetUser
-| where AttemptCount > 3
-```
 
-This rule detects repeated SSH login failures on Ubuntu.
 
 ## Automation and Playbooks
 
@@ -122,80 +129,14 @@ Each generated incident sends an email notification to Outlook.
 ### Workflow
 1. A failed RDP or SSH attempt is detected.
 2. Microsoft Sentinel creates an incident.
-3. A playbook or automation rule sends an email.
-4. The alert arrives in Outlook.
 
-### Email content
-- Incident title.
-- Severity.
-- Time of detection.
-- Affected host.
-- Source IP.
-- Rule name.
-- Link to the incident.
+<img width="1821" height="925" alt="image" src="https://github.com/user-attachments/assets/96575f4c-2a27-4a68-833f-65012c9e6f91" />
+<img width="1818" height="852" alt="image" src="https://github.com/user-attachments/assets/eaced577-d50c-4655-8006-a7b3e859b6e9" />
+
+
 
 This makes it easy to monitor alerts without opening Sentinel constantly.
 
-## Screenshots
-
-Place the screenshots in an `images/` folder and reference them here in this order:
-
-### 1. Sentinel environment setup
-Insert the screenshot showing:
-- Resource group creation.
-- Log Analytics Workspace creation.
-- Microsoft Sentinel added to the workspace.
-
-### 2. Virtual machines setup
-Insert the screenshot showing:
-- Windows Server VM.
-- Ubuntu VM.
-- VMware Workstation lab layout.
-
-### 3. Onboarding and log validation
-Insert the screenshot showing:
-- `Heartbeat` received from both machines.
-- Log ingestion validation in Sentinel.
-
-### 4. Windows `SecurityEvent` logs
-Insert the screenshot showing:
-- `SecurityEvent` table.
-- Failed RDP logon events with Event ID `4625`.
-
-### 5. Ubuntu `Syslog` logs
-Insert the screenshot showing:
-- `Syslog` table.
-- `auth` / `authpriv` SSH-related entries.
-
-### 6. Windows analytics rule
-Insert the screenshot showing:
-- The `Failed_RDP_login` analytics rule.
-- Rule query and scheduling details.
-
-### 7. Ubuntu analytics rule
-Insert the screenshot showing:
-- The SSH analytics rule.
-- Query used to detect failed SSH logins.
-
-### 8. Incident creation
-Insert the screenshot showing:
-- The generated incident in Microsoft Sentinel.
-- Incident details and affected entities.
-
-### 9. Outlook alert email
-Insert the screenshot showing:
-- The alert email received in Outlook.
-- Incident information included in the message.
-
-### 10. Playbook / automation
-Insert the screenshot showing:
-- The playbook in Logic Apps.
-- The automation flow used for response.
-
-### 11. IP blocking result
-Insert the screenshot showing:
-- The blocked IP action.
-- Firewall rule or automation confirmation after 10 failed attempts.
 
 ## Results
 
@@ -218,7 +159,7 @@ Possible next steps:
 
 ## Author
 
-Created by: **[Your Name]**  
+Created by: **ABIDI OTHMANE**  
 Cybersecurity Engineering Student  
 Focused on SIEM, SOC operations, cloud security, and network security.
 
